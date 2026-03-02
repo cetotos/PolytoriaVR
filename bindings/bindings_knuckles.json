@@ -1,0 +1,39 @@
+{
+  "bindings": {
+    "/actions/main": {
+      "sources": [
+        {
+          "path": "/user/hand/left/input/thumbstick",
+          "mode": "joystick",
+          "inputs": {
+            "position": { "output": "/actions/main/in/LeftJoystick" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/thumbstick",
+          "mode": "joystick",
+          "inputs": {
+            "position": { "output": "/actions/main/in/RightJoystick" }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/grip",
+          "mode": "force_sensor",
+          "inputs": {
+            "force": { "output": "/actions/main/in/LeftGrip" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/grip",
+          "mode": "force_sensor",
+          "inputs": {
+            "force": { "output": "/actions/main/in/RightGrip" }
+          }
+        }
+      ]
+    }
+  },
+  "controller_type": "knuckles",
+  "description": "Bindings for Valve Index Controllers",
+  "name": "PolytoriaVR Knuckles Bindings"
+}

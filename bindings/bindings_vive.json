@@ -1,0 +1,39 @@
+{
+  "bindings": {
+    "/actions/main": {
+      "sources": [
+        {
+          "path": "/user/hand/left/input/trackpad",
+          "mode": "joystick",
+          "inputs": {
+            "position": { "output": "/actions/main/in/LeftJoystick" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/trackpad",
+          "mode": "joystick",
+          "inputs": {
+            "position": { "output": "/actions/main/in/RightJoystick" }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/grip",
+          "mode": "button",
+          "inputs": {
+            "click": { "output": "/actions/main/in/LeftGrip" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/grip",
+          "mode": "button",
+          "inputs": {
+            "click": { "output": "/actions/main/in/RightGrip" }
+          }
+        }
+      ]
+    }
+  },
+  "controller_type": "vive_controller",
+  "description": "Bindings for HTC Vive Controllers",
+  "name": "PolytoriaVR Vive Bindings"
+}

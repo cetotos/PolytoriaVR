@@ -1,0 +1,50 @@
+{
+  "version": "2",
+  "action_sets": [
+    {
+      "name": "/actions/main",
+      "usage": "leftright"
+    }
+  ],
+  "actions": [
+    {
+      "name": "/actions/main/in/LeftJoystick",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/main/in/RightJoystick",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/main/in/LeftGrip",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/RightGrip",
+      "type": "vector1"
+    }
+  ],
+  "default_bindings": [
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "bindings_oculus_touch.json"
+    },
+    {
+      "controller_type": "oculus_touch_legacy",
+      "binding_url": "bindings_oculus_touch_legacy.json"
+    },
+    {
+      "controller_type": "knuckles",
+      "binding_url": "bindings_knuckles.json"
+    },
+    {
+      "controller_type": "vive_controller",
+      "binding_url": "bindings_vive.json"
+    },
+    {
+      "controller_type": "holographic_controller",
+      "binding_url": "bindings_holographic.json"
+    }
+  ],
+  "localization": []
+}

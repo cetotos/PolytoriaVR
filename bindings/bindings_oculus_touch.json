@@ -1,0 +1,39 @@
+{
+  "bindings": {
+    "/actions/main": {
+      "sources": [
+        {
+          "path": "/user/hand/left/input/joystick",
+          "mode": "joystick",
+          "inputs": {
+            "position": { "output": "/actions/main/in/LeftJoystick" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/joystick",
+          "mode": "joystick",
+          "inputs": {
+            "position": { "output": "/actions/main/in/RightJoystick" }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/grip",
+          "mode": "trigger",
+          "inputs": {
+            "pull": { "output": "/actions/main/in/LeftGrip" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/grip",
+          "mode": "trigger",
+          "inputs": {
+            "pull": { "output": "/actions/main/in/RightGrip" }
+          }
+        }
+      ]
+    }
+  },
+  "controller_type": "oculus_touch",
+  "description": "Bindings for Oculus Touch / Quest controllers",
+  "name": "PolytoriaVR Oculus Touch Bindings"
+}

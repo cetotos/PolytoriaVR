@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="PolytoriaVR.csproj" />
+  <Project Path="PolytoriaVR.GUI/PolytoriaVR.GUI.csproj" />
+</Solution>
