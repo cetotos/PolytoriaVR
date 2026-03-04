@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <GameDir>C:\Users\Cetotos\AppData\Roaming\Polytoria\Client\1.4.155</GameDir>
+    <GameDir>$(AppData)\Polytoria\Client\1.4.155</GameDir>
     <BepInExCoreDir>$(GameDir)\BepInEx\core</BepInExCoreDir>
     <InteropDir>$(GameDir)\BepInEx\interop</InteropDir>
     <Nullable>disable</Nullable>
@@ -103,5 +103,18 @@
     <None Include="bindings\bindings_holographic.json" CopyToOutputDirectory="PreserveNewest" Link="bindings_holographic.json" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <BuildDir>$(MSBuildProjectDirectory)\build</BuildDir>
+    <PluginsDir>$(GameDir)\BepInEx\plugins</PluginsDir>
+  </PropertyGroup>
+
+  <Target Name="CopyToBuildAndGame" AfterTargets="Build">
+    <MakeDir Directories="$(BuildDir)" />
+    <ItemGroup>
+      <ModOutputFiles Include="$(OutputPath)\PolytoriaVR.dll;$(OutputPath)\vr_actions.json;$(OutputPath)\bindings_*.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModOutputFiles)" DestinationFolder="$(BuildDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ModOutputFiles)" DestinationFolder="$(PluginsDir)" SkipUnchangedFiles="true" Condition="Exists('$(PluginsDir)')" />
+  </Target>
 
 </Project>

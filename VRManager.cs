@@ -65,6 +65,7 @@ namespace PolytoriaVR
         internal static volatile bool LocalHandsVisible = true;
 
         internal static volatile bool FlyEnabled = true;
+        internal static volatile float FlySpeedMultiplier = 1f;
 
         private float handScaleTimer;
 
@@ -704,7 +705,7 @@ namespace PolytoriaVR
                 try { speed = localPlayer.WalkSpeed; } catch { }
 
                 var playerTransform = ((Component)localPlayer).transform;
-                playerTransform.position += moveDir * speed * Time.deltaTime;
+                playerTransform.position += moveDir * speed * FlySpeedMultiplier * Time.deltaTime;
             }
             catch { }
         }

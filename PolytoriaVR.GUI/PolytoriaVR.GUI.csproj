@@ -8,4 +8,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <BuildDir>$(MSBuildProjectDirectory)\..\build</BuildDir>
+  </PropertyGroup>
+
+  <Target Name="CopyToBuild" AfterTargets="Build">
+    <MakeDir Directories="$(BuildDir)" />
+    <Copy SourceFiles="$(OutputPath)\PolytoriaVR.GUI.exe" DestinationFolder="$(BuildDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutputPath)\PolytoriaVR.GUI.dll" DestinationFolder="$(BuildDir)" SkipUnchangedFiles="true" Condition="Exists('$(OutputPath)\PolytoriaVR.GUI.dll')" />
+    <Copy SourceFiles="$(OutputPath)\PolytoriaVR.GUI.runtimeconfig.json" DestinationFolder="$(BuildDir)" SkipUnchangedFiles="true" Condition="Exists('$(OutputPath)\PolytoriaVR.GUI.runtimeconfig.json')" />
+  </Target>
+
 </Project>

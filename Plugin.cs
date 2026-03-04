@@ -68,7 +68,7 @@ namespace PolytoriaVR
                                 else { VRDeactivationRequested = true; response = "OK"; }
                                 break;
                             case "STATUS":
-                                response = $"VR={VRActive}|OpenVR={OpenVR.IsInitialized}|Status={LastStatus}|TurnSpeed={VRManager.SmoothTurnSpeed}|VRScale={VRManager.VRScale}|LocalHands={VRManager.LocalHandsVisible}|Fly={VRManager.FlyEnabled}";
+                                response = $"VR={VRActive}|OpenVR={OpenVR.IsInitialized}|Status={LastStatus}|TurnSpeed={VRManager.SmoothTurnSpeed}|VRScale={VRManager.VRScale}|LocalHands={VRManager.LocalHandsVisible}|Fly={VRManager.FlyEnabled}|FlySpeed={VRManager.FlySpeedMultiplier}";
                                 break;
                             default:
                                 if (msg.StartsWith("SET_TURN_SPEED:"))
@@ -85,6 +85,15 @@ namespace PolytoriaVR
                                     var val = msg.Substring(8).Trim();
                                     VRManager.FlyEnabled = val == "1" || val.Equals("true", StringComparison.OrdinalIgnoreCase);
                                     response = $"OK:Fly={VRManager.FlyEnabled}";
+                                }
+                                else if (msg.StartsWith("SET_FLY_SPEED:"))
+                                {
+                                    if (float.TryParse(msg.Substring(14), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float fs) && fs >= 0.5f && fs <= 10f)
+                                    {
+                                        VRManager.FlySpeedMultiplier = fs;
+                                        response = $"OK:FlySpeed={fs}";
+                                    }
+                                    else response = "ERROR:InvalidValue";
                                 }
                                 else if (msg.StartsWith("SET_LOCAL_HANDS:"))
                                 {

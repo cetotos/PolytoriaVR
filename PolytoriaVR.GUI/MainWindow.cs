@@ -20,12 +20,15 @@ public class  MainWindow : Form
 
     private const string BepInExUrl = "https://builds.bepinex.dev/projects/bepinex_be/754/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.754%2Bc038613.zip";
     private const string Unity6PatchUrl = "https://github.com/cetotos/Il2CppInterop-Unity6/releases/download/v1.0.0/Il2CppInterop-Unity6-1.0.0.zip";
+    private const string ModUrl = "https://github.com/cetotos/PolytoriaVR/releases/download/v0.1.0/PolytoriaVR-mod-0.1.0.zip";
 
     private readonly Label statusLabel;
     private readonly NumericUpDown turnSpeedInput;
     private readonly NumericUpDown vrScaleInput;
     private readonly CheckBox localHandsCheck;
     private readonly CheckBox flyCheck;
+    private readonly NumericUpDown flySpeedInput;
+    private readonly System.Windows.Forms.Timer flySpeedDebounce;
     private readonly TextBox logBox;
     private readonly Button installBtn;
     private readonly ProgressBar progressBar;
@@ -46,11 +49,13 @@ public class  MainWindow : Form
         turnSpeedDebounce.Tick += TurnSpeedDebounce_Tick;
         scaleDebounce = new System.Windows.Forms.Timer { Interval = 300 };
         scaleDebounce.Tick += ScaleDebounce_Tick;
+        flySpeedDebounce = new System.Windows.Forms.Timer { Interval = 300 };
+        flySpeedDebounce.Tick += FlySpeedDebounce_Tick;
 
         var topPanel = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 240,
+            Height = 268,
             Padding = new Padding(10, 8, 10, 0)
         };
         Controls.Add(topPanel);
@@ -70,7 +75,7 @@ public class  MainWindow : Form
         topPanel.Controls.Add(deactivateBtn);
         y += 38;
 
-        var settingsGroup = new GroupBox { Text = "Settings", Location = new Point(10, y), Size = new Size(345, 115), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
+        var settingsGroup = new GroupBox { Text = "Settings", Location = new Point(10, y), Size = new Size(345, 143), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
         topPanel.Controls.Add(settingsGroup);
 
         int sy = 20;
@@ -94,8 +99,14 @@ public class  MainWindow : Form
         flyCheck = new CheckBox { Text = "Fly Mode", Checked = true, Location = new Point(170, sy), AutoSize = true };
         flyCheck.CheckedChanged += Fly_Changed;
         settingsGroup.Controls.Add(flyCheck);
+        sy += 28;
 
-        y += 122;
+        settingsGroup.Controls.Add(new Label { Text = "Fly Speed:", Location = new Point(10, sy + 2), AutoSize = true });
+        flySpeedInput = new NumericUpDown { Minimum = 0.5m, Maximum = 10.0m, Value = 1.0m, Increment = 0.5m, DecimalPlaces = 1, Location = new Point(100, sy), Width = 65 };
+        flySpeedInput.ValueChanged += (_, _) => { if (!syncing) { flySpeedDebounce.Stop(); flySpeedDebounce.Start(); } };
+        settingsGroup.Controls.Add(flySpeedInput);
+
+        y += 151;
 
         installBtn = new Button { Text = "Install Mod", Location = new Point(10, y), Size = new Size(345, 28), Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
         installBtn.Click += InstallMod_Click;
@@ -146,6 +157,7 @@ public class  MainWindow : Form
         await SendCommandAsync($"SET_SCALE:{vrScaleInput.Value.ToString(CultureInfo.InvariantCulture)}");
         await SendCommandAsync($"SET_LOCAL_HANDS:{(localHandsCheck.Checked ? "1" : "0")}");
         await SendCommandAsync($"SET_FLY:{(flyCheck.Checked ? "1" : "0")}");
+        await SendCommandAsync($"SET_FLY_SPEED:{flySpeedInput.Value.ToString(CultureInfo.InvariantCulture)}");
 
         var resp = await SendCommandAsync("START_VR");
         Log($"Activate: {resp}");
@@ -219,34 +231,14 @@ public class  MainWindow : Form
             var pluginsDir = Path.Combine(GameDir, "BepInEx", "plugins");
             Directory.CreateDirectory(pluginsDir);
 
-            var buildDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..",
-                "bin", "Release", "netstandard2.1");
-            if (!Directory.Exists(buildDir))
-                buildDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..",
-                    "bin", "Debug", "netstandard2.1");
+            Log("Downloading PolytoriaVR mod...");
+            var modZip = Path.Combine(tempDir, "mod.zip");
+            await DownloadFileAsync(ModUrl, modZip);
+            progressBar.Value = 85;
 
-            if (Directory.Exists(buildDir))
-            {
-                string[] modFiles = { "PolytoriaVR.dll", "vr_actions.json",
-                    "bindings_oculus_touch.json", "bindings_oculus_touch_legacy.json",
-                    "bindings_knuckles.json", "bindings_vive.json", "bindings_holographic.json" };
-
-                foreach (var name in modFiles)
-                {
-                    var src = Path.Combine(buildDir, name);
-                    if (File.Exists(src))
-                    {
-                        File.Copy(src, Path.Combine(pluginsDir, name), true);
-                        Log($"  Copied: {name}");
-                    }
-                }
-                Log("Mod files installed.");
-            }
-            else
-            {
-                Log("Mod build output not found - skipping mod file copy.");
-                Log("Build the mod first, or place files in BepInEx/plugins manually.");
-            }
+            Log("Extracting mod files...");
+            ZipFile.ExtractToDirectory(modZip, pluginsDir, true);
+            Log("Mod files installed.");
             progressBar.Value = 90;
 
             PatchBootConfig();
@@ -309,6 +301,15 @@ public class  MainWindow : Form
             Log($"Set VR scale: {resp}");
     }
 
+    private async void FlySpeedDebounce_Tick(object? sender, EventArgs e)
+    {
+        flySpeedDebounce.Stop();
+        SaveSettings();
+        var resp = await SendCommandAsync($"SET_FLY_SPEED:{flySpeedInput.Value.ToString(CultureInfo.InvariantCulture)}");
+        if (resp.Contains("ERROR") && !resp.Contains("Game not running"))
+            Log($"Set fly speed: {resp}");
+    }
+
     private async void LocalHands_Changed(object? sender, EventArgs e)
     {
         if (syncing) return;
@@ -362,7 +363,8 @@ public class  MainWindow : Form
                 ["TurnSpeed"] = (double)turnSpeedInput.Value,
                 ["VRScale"] = (double)vrScaleInput.Value,
                 ["LocalHands"] = localHandsCheck.Checked,
-                ["Fly"] = flyCheck.Checked
+                ["Fly"] = flyCheck.Checked,
+                ["FlySpeed"] = (double)flySpeedInput.Value
             };
             File.WriteAllText(SettingsFile, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
         }
@@ -386,6 +388,8 @@ public class  MainWindow : Form
                 localHandsCheck.Checked = lh.GetBoolean();
             if (root.TryGetProperty("Fly", out var fly))
                 flyCheck.Checked = fly.GetBoolean();
+            if (root.TryGetProperty("FlySpeed", out var fsp))
+                flySpeedInput.Value = Math.Clamp((decimal)fsp.GetDouble(), flySpeedInput.Minimum, flySpeedInput.Maximum);
             syncing = false;
 
             Log("Settings loaded.");
