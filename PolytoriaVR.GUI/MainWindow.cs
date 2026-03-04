@@ -20,7 +20,6 @@ public class  MainWindow : Form
 
     private const string BepInExUrl = "https://builds.bepinex.dev/projects/bepinex_be/754/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.754%2Bc038613.zip";
     private const string Unity6PatchUrl = "https://github.com/cetotos/Il2CppInterop-Unity6/releases/download/v1.0.0/Il2CppInterop-Unity6-1.0.0.zip";
-    private const string ModUrl = "https://github.com/cetotos/PolytoriaVR/releases/download/v0.1.0/PolytoriaVR-mod-0.1.0.zip";
 
     private readonly Label statusLabel;
     private readonly NumericUpDown turnSpeedInput;
@@ -228,14 +227,38 @@ public class  MainWindow : Form
             var pluginsDir = Path.Combine(GameDir, "BepInEx", "plugins");
             Directory.CreateDirectory(pluginsDir);
 
-            Log("Downloading PolytoriaVR mod...");
-            var modZip = Path.Combine(tempDir, "mod.zip");
-            await DownloadFileAsync(ModUrl, modZip);
-            progressBar.Value = 85;
-
-            Log("Extracting mod files...");
-            ZipFile.ExtractToDirectory(modZip, pluginsDir, true);
+            Log("Installing mod...");
+            string? modDir = null;
+            var exeDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (File.Exists(Path.Combine(exeDir, "PolytoriaVR.dll")))
+                modDir = exeDir;
+            else
+            {
+                var search = Directory.GetParent(exeDir);
+                for (int depth = 0; depth < 5 && search != null; depth++, search = search.Parent)
+                {
+                    var candidate = Path.Combine(search.FullName, "build");
+                    if (File.Exists(Path.Combine(candidate, "PolytoriaVR.dll")))
+                    { modDir = candidate; break; }
+                }
+            }
+            if (modDir == null)
+            {
+                Log("ERROR: Mod files not found. Build the mod project first (dotnet build).");
+                return;
+            }
+            foreach (var file in Directory.GetFiles(modDir))
+            {
+                var name = Path.GetFileName(file);
+                if (name.StartsWith("PolytoriaVR.GUI", StringComparison.OrdinalIgnoreCase)) continue;
+                if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) continue;
+                if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
+                var dest = Path.Combine(pluginsDir, Path.GetFileName(file));
+                File.Copy(file, dest, true);
+                Log($"  Copied: {Path.GetFileName(file)}");
+            }
             Log("Mod files installed.");
+            progressBar.Value = 85;
             progressBar.Value = 90;
 
             PatchBootConfig();
