@@ -384,7 +384,6 @@ namespace PolytoriaVR
             }
         }
 
-
         private void FindLocalPlayer()
         {
             try

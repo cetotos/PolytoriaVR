@@ -82,7 +82,6 @@ namespace PolytoriaVR
         public float fUpdateTime;
     }
 
-
     [StructLayout(LayoutKind.Sequential)]
     internal struct VRActiveActionSet_t
     {

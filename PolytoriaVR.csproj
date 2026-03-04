@@ -19,6 +19,7 @@
     <Compile Include="OpenVR.cs" />
     <Compile Include="OpenVRStructs.cs" />
     <Compile Include="VRManager.cs" />
+    <Compile Include="NpcSafetyPatch.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +42,10 @@
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>$(BepInExCoreDir)\MonoMod.RuntimeDetour.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCoreDir)\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <!-- Unity Core -->

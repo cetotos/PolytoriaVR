@@ -131,7 +131,6 @@ public class  MainWindow : Form
         LoadSettings();
     }
 
-
     private async Task<string> SendCommandAsync(string cmd)
     {
         try
@@ -149,7 +148,6 @@ public class  MainWindow : Form
         catch (IOException) { return "ERROR: Timeout"; }
         catch (Exception e) { return $"ERROR: {e.Message}"; }
     }
-
 
     private async void ActivateVR_Click(object? sender, EventArgs e)
     {
@@ -170,7 +168,6 @@ public class  MainWindow : Form
         Log($"Deactivate: {resp}");
         statusLabel.Text = resp;
     }
-
 
     private async void InstallMod_Click(object? sender, EventArgs e)
     {
@@ -282,7 +279,6 @@ public class  MainWindow : Form
         return null;
     }
 
-
     private async void TurnSpeedDebounce_Tick(object? sender, EventArgs e)
     {
         turnSpeedDebounce.Stop();
@@ -326,7 +322,6 @@ public class  MainWindow : Form
         Log($"Fly mode {(flyCheck.Checked ? "enabled" : "disabled")}: {resp}");
     }
 
-
     private void PatchBootConfig()
     {
         if (!File.Exists(BootConfig)) { Log($"boot.config not found: {BootConfig}"); return; }
@@ -347,7 +342,6 @@ public class  MainWindow : Form
         File.WriteAllLines(BootConfig, lines);
         Log("boot.config patched.");
     }
-
 
     private void Log(string message)
     {

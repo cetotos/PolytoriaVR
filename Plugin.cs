@@ -7,6 +7,7 @@ using BepInEx;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using Il2CppInterop.Runtime.Injection;
+using HarmonyLib;
 using UnityEngine;
 
 namespace PolytoriaVR
@@ -24,6 +25,10 @@ namespace PolytoriaVR
         {
             Log = base.Log;
             Log.LogInfo("PolytoriaVR loading..");
+
+            var harmony = new Harmony("com.cetotos.polytoriavr");
+            NpcSafetyPatch.Apply(harmony);
+            Log.LogInfo("[Harmony] Safety patches applied");
 
             ClassInjector.RegisterTypeInIl2Cpp<VRManager>();
 
