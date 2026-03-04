@@ -83,19 +83,29 @@ namespace PolytoriaVR
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate int d_UpdateActionState([In] VRActiveActionSet_t[] pSets, uint unSizeOfVRSelectedActionSet_t, uint unSetCount);
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int d_GetSkeletalActionData(ulong action, ref InputSkeletalActionData_t pActionData, uint unActionDataSize);
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int d_GetSkeletalSummaryData(ulong action, int eSummaryType, ref VRSkeletalSummaryData_t pSkeletalSummaryData);
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate int d_GetAnalogActionData(ulong action, ref InputAnalogActionData_t pActionData, uint unActionDataSize, ulong ulRestrictToDevice);
 
         private static d_SetActionManifestPath fn_SetActionManifestPath;
         private static d_GetActionSetHandle fn_GetActionSetHandle;
         private static d_GetActionHandle fn_GetActionHandle;
         private static d_UpdateActionState fn_UpdateActionState;
+        private static d_GetSkeletalActionData fn_GetSkeletalActionData;
+        private static d_GetSkeletalSummaryData fn_GetSkeletalSummaryData;
         private static d_GetAnalogActionData fn_GetAnalogActionData;
 
         private static ulong mainActionSetHandle;
+        private static ulong leftSkeletonHandle;
+        private static ulong rightSkeletonHandle;
         private static ulong leftJoystickHandle;
         private static ulong rightJoystickHandle;
         private static ulong leftGripHandle;
         private static ulong rightGripHandle;
+        private static ulong leftTriggerHandle;
+        private static ulong rightTriggerHandle;
         public static bool InputInitialized { get; private set; }
 
         private static TrackedDevicePose_t[] poses = new TrackedDevicePose_t[1];
@@ -291,6 +301,8 @@ namespace PolytoriaVR
                 fn_GetActionHandle = ReadFnTableEntry<d_GetActionHandle>(inputFnTable, 2);
                 fn_UpdateActionState = ReadFnTableEntry<d_UpdateActionState>(inputFnTable, 4);
                 fn_GetAnalogActionData = ReadFnTableEntry<d_GetAnalogActionData>(inputFnTable, 6);
+                fn_GetSkeletalActionData = ReadFnTableEntry<d_GetSkeletalActionData>(inputFnTable, 9);
+                fn_GetSkeletalSummaryData = ReadFnTableEntry<d_GetSkeletalSummaryData>(inputFnTable, 18);
 
                 Plugin.Log.LogInfo($"[OpenVR] IVRInput functions resolved (version={usedVersion})");
 
@@ -303,6 +315,9 @@ namespace PolytoriaVR
 
                 err = fn_GetActionSetHandle("/actions/main", ref mainActionSetHandle);
 
+                err = fn_GetActionHandle("/actions/main/in/LeftHand_Skeleton", ref leftSkeletonHandle);
+                err = fn_GetActionHandle("/actions/main/in/RightHand_Skeleton", ref rightSkeletonHandle);
+
                 err = fn_GetActionHandle("/actions/main/in/LeftJoystick", ref leftJoystickHandle);
 
                 err = fn_GetActionHandle("/actions/main/in/RightJoystick", ref rightJoystickHandle);
@@ -310,6 +325,10 @@ namespace PolytoriaVR
                 err = fn_GetActionHandle("/actions/main/in/LeftGrip", ref leftGripHandle);
 
                 err = fn_GetActionHandle("/actions/main/in/RightGrip", ref rightGripHandle);
+
+                err = fn_GetActionHandle("/actions/main/in/LeftTrigger", ref leftTriggerHandle);
+
+                err = fn_GetActionHandle("/actions/main/in/RightTrigger", ref rightTriggerHandle);
 
                 InputInitialized = true;
                 Plugin.Log.LogInfo("[OpenVR] IVRInput initialized!");
@@ -577,6 +596,70 @@ namespace PolytoriaVR
             }
             catch { }
             return 0f;
+        }
+
+        public static float GetTriggerStrength(bool leftHand)
+        {
+            if (!InputInitialized || fn_GetAnalogActionData == null) return 0f;
+
+            ulong handle = leftHand ? leftTriggerHandle : rightTriggerHandle;
+            if (handle == 0) return 0f;
+
+            try
+            {
+                var data = new InputAnalogActionData_t();
+                int err = fn_GetAnalogActionData(handle, ref data, (uint)Marshal.SizeOf<InputAnalogActionData_t>(), 0);
+                if (err == 0 && data.bActive)
+                    return data.x;
+            }
+            catch { }
+            return 0f;
+        }
+
+        private static int skeletalFailCount;
+        private static bool skeletalDisabled;
+        private static float[] _cachedLeftCurls = new float[5];
+        private static float[] _cachedRightCurls = new float[5];
+
+        public static unsafe bool GetFingerCurls(bool leftHand, out float[] curls)
+        {
+            curls = leftHand ? _cachedLeftCurls : _cachedRightCurls;
+            if (!InputInitialized || fn_GetSkeletalSummaryData == null || skeletalDisabled) return false;
+
+            try
+            {
+                ulong handle = leftHand ? leftSkeletonHandle : rightSkeletonHandle;
+                if (handle == 0) return false;
+
+                if (fn_GetSkeletalActionData != null)
+                {
+                    var actionData = new InputSkeletalActionData_t();
+                    int adErr = fn_GetSkeletalActionData(handle, ref actionData, (uint)Marshal.SizeOf<InputSkeletalActionData_t>());
+                    if (adErr != 0 || !actionData.bActive)
+                    {
+                        skeletalFailCount++;
+                        if (skeletalFailCount >= 120)
+                        {
+                            skeletalDisabled = true;
+                            Plugin.Log.LogWarning("[OpenVR] Skeletal input not available - falling back to controller curls");
+                        }
+                        return false;
+                    }
+                    skeletalFailCount = 0;
+                }
+
+                var summary = new VRSkeletalSummaryData_t();
+                int err = fn_GetSkeletalSummaryData(handle, 0, ref summary);
+                if (err != 0) return false;
+
+                for (int i = 0; i < 5; i++)
+                    curls[i] = summary.flFingerCurl[i];
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static void MatrixToUnityPose(HmdMatrix34_t pose, out Vector3 pos, out Quaternion rot)

@@ -61,6 +61,13 @@ namespace PolytoriaVR
 
         private float leftGripStrength;
         private float rightGripStrength;
+        private float leftTriggerStrength;
+        private float rightTriggerStrength;
+
+        private float[] leftFingerCurls = new float[5];
+        private float[] rightFingerCurls = new float[5];
+        private bool hasLeftFingerData;
+        private bool hasRightFingerData;
 
         internal static volatile bool LocalHandsVisible = true;
 
@@ -316,6 +323,7 @@ namespace PolytoriaVR
             HandleMovement();
             UpdateHands();
             UpdateGripStrength();
+            UpdateFingerTracking();
             SyncHandsToNetwork();
             HideOwnNetworkHands();
         }
@@ -475,7 +483,25 @@ namespace PolytoriaVR
             {
                 leftGripStrength = OpenVR.GetGripStrength(true);
                 rightGripStrength = OpenVR.GetGripStrength(false);
+                leftTriggerStrength = OpenVR.GetTriggerStrength(true);
+                rightTriggerStrength = OpenVR.GetTriggerStrength(false);
+            }
+            catch { }
+        }
 
+        private void UpdateFingerTracking()
+        {
+            if (!OpenVR.InputInitialized)
+            {
+                hasLeftFingerData = false;
+                hasRightFingerData = false;
+                return;
+            }
+
+            try
+            {
+                hasLeftFingerData = OpenVR.GetFingerCurls(true, out leftFingerCurls);
+                hasRightFingerData = OpenVR.GetFingerCurls(false, out rightFingerCurls);
             }
             catch { }
         }
@@ -548,12 +574,46 @@ namespace PolytoriaVR
                     activeFlags |= 1;
                     msg.AddVector3("lp", leftHand.transform.position);
                     msg.AddVector3("lr", leftHand.transform.rotation.eulerAngles);
+
+                    activeFlags |= 4;
+                    if (hasLeftFingerData)
+                    {
+                        for (int i = 0; i < 5; i++)
+                            msg.AddNumber("lc" + i, leftFingerCurls[i]);
+                    }
+                    else
+                    {
+                        float lt = leftTriggerStrength;
+                        float lg = leftGripStrength;
+                        msg.AddNumber("lc0", Mathf.Max(0.0f, Mathf.Max(lt, lg) * 0.5f));
+                        msg.AddNumber("lc1", Mathf.Max(0.12f, lt));
+                        msg.AddNumber("lc2", Mathf.Max(0.13f, lg));
+                        msg.AddNumber("lc3", Mathf.Max(0.14f, lg));
+                        msg.AddNumber("lc4", Mathf.Max(0.15f, lg));
+                    }
                 }
                 if (rightActive)
                 {
                     activeFlags |= 2;
                     msg.AddVector3("rp", rightHand.transform.position);
                     msg.AddVector3("rr", rightHand.transform.rotation.eulerAngles);
+
+                    activeFlags |= 8;
+                    if (hasRightFingerData)
+                    {
+                        for (int i = 0; i < 5; i++)
+                            msg.AddNumber("rc" + i, rightFingerCurls[i]);
+                    }
+                    else
+                    {
+                        float rt = rightTriggerStrength;
+                        float rg = rightGripStrength;
+                        msg.AddNumber("rc0", Mathf.Max(0.0f, Mathf.Max(rt, rg) * 0.5f));
+                        msg.AddNumber("rc1", Mathf.Max(0.12f, rt));
+                        msg.AddNumber("rc2", Mathf.Max(0.13f, rg));
+                        msg.AddNumber("rc3", Mathf.Max(0.14f, rg));
+                        msg.AddNumber("rc4", Mathf.Max(0.15f, rg));
+                    }
                 }
                 msg.AddInt("a", activeFlags);
 

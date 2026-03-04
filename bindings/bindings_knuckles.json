@@ -29,6 +29,20 @@
           "inputs": {
             "force": { "output": "/actions/main/in/RightGrip" }
           }
+        },
+        {
+          "path": "/user/hand/left/input/trigger",
+          "mode": "trigger",
+          "inputs": {
+            "pull": { "output": "/actions/main/in/LeftTrigger" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/trigger",
+          "mode": "trigger",
+          "inputs": {
+            "pull": { "output": "/actions/main/in/RightTrigger" }
+          }
         }
       ]
     }

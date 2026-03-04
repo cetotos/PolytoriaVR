@@ -8,6 +8,16 @@
   ],
   "actions": [
     {
+      "name": "/actions/main/in/LeftHand_Skeleton",
+      "type": "skeleton",
+      "skeleton": "/skeleton/hand/left"
+    },
+    {
+      "name": "/actions/main/in/RightHand_Skeleton",
+      "type": "skeleton",
+      "skeleton": "/skeleton/hand/right"
+    },
+    {
       "name": "/actions/main/in/LeftJoystick",
       "type": "vector2"
     },
@@ -21,6 +31,14 @@
     },
     {
       "name": "/actions/main/in/RightGrip",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/LeftTrigger",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/main/in/RightTrigger",
       "type": "vector1"
     }
   ],
