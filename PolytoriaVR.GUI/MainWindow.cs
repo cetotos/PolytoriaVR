@@ -7,18 +7,109 @@ using System.Text.Json;
 
 namespace PolytoriaVR.GUI;
 
-public class  MainWindow : Form
+public class MainWindow : Form
 {
     private const int Port = 9999;
-    private static readonly string GameDir = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "Polytoria", "Client", "1.4.155");
+    private static readonly bool IsWine = DetectWine();
+    private static readonly string GameDir = ResolveGameDir();
     private static readonly string BootConfig = Path.Combine(GameDir, "Polytoria Client_Data", "boot.config");
     private static readonly string BootBackup = BootConfig + ".bak";
     private static readonly string SettingsFile = Path.Combine(
         AppContext.BaseDirectory, "polytoriavr_settings.json");
 
-    private const string BepInExUrl = "https://builds.bepinex.dev/projects/bepinex_be/754/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.754%2Bc038613.zip";
+    private static bool DetectWine()
+    {
+        // Check common Wine environment variables
+        string[] wineVars = { "WINEPREFIX", "WINELOADERNOEXEC", "WINELOADER", "WINEDEBUG", "WINE_LARGE_ADDRESS_AWARE" };
+        foreach (var v in wineVars)
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(v))) return true;
+
+        // Check Wine registry key
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Wine");
+            if (key != null) return true;
+        }
+        catch { }
+
+        // Check ntdll for wine_get_version export
+        try
+        {
+            var ntdll = GetModuleHandle("ntdll.dll");
+            if (ntdll != IntPtr.Zero && GetProcAddressWine(ntdll, "wine_get_version") != IntPtr.Zero)
+                return true;
+        }
+        catch { }
+        return false;
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern IntPtr GetModuleHandle(string lpModuleName);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", EntryPoint = "GetProcAddress", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+    private static extern IntPtr GetProcAddressWine(IntPtr hModule, string lpProcName);
+
+    private static string? FindClientDir(string clientBase)
+    {
+        try
+        {
+            if (!Directory.Exists(clientBase)) return null;
+            var dirs = Directory.GetDirectories(clientBase);
+            return dirs.Length > 0 ? dirs[0] : null;
+        }
+        catch { return null; }
+    }
+
+    private static string ResolveGameDir()
+    {
+        if (IsWine)
+        {
+            // Try multiple ways to find the Linux home directory
+            var homes = new System.Collections.Generic.List<string>();
+
+            // 1. HOME env var (Unix path like /home/cetotos)
+            var home = Environment.GetEnvironmentVariable("HOME");
+            if (!string.IsNullOrEmpty(home))
+                homes.Add("Z:" + home.Replace('/', '\\'));
+
+            // 2. Derive from Wine's user profile path (C:\users\X -> Z:\home\X)
+            var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var userName = Path.GetFileName(userProfile.TrimEnd('\\', '/'));
+            if (!string.IsNullOrEmpty(userName))
+                homes.Add(@"Z:\home\" + userName);
+
+            // 3. USER env var
+            var user = Environment.GetEnvironmentVariable("USER");
+            if (!string.IsNullOrEmpty(user))
+                homes.Add(@"Z:\home\" + user);
+
+            // Search known Polytoria config locations under each home
+            string[] configPaths = {
+                Path.Combine(".var", "app", "com.polytoria.launcher", "config", "Polytoria", "Client"),
+                Path.Combine(".config", "Polytoria", "Client"),
+                Path.Combine(".local", "share", "Polytoria", "Client"),
+            };
+
+            foreach (var h in homes)
+            {
+                foreach (var cfg in configPaths)
+                {
+                    var candidate = Path.Combine(h, cfg);
+                    var found = FindClientDir(candidate);
+                    if (found != null) return found;
+                }
+            }
+        }
+
+        // Windows (or Wine fallback): use AppData
+        var winBase = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Polytoria", "Client");
+        return FindClientDir(winBase) ?? winBase;
+    }
+
+    private const string BepInExUrlWin = "https://builds.bepinex.dev/projects/bepinex_be/754/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.754%2Bc038613.zip";
+    private const string BepInExUrlLinux = "https://builds.bepinex.dev/projects/bepinex_be/754/BepInEx-Unity.IL2CPP-linux-x64-6.0.0-be.754%2Bc038613.zip";
+    private static readonly string BepInExUrl = IsWine ? BepInExUrlLinux : BepInExUrlWin;
     private const string Unity6PatchUrl = "https://github.com/cetotos/Il2CppInterop-Unity6/releases/download/v1.0.0/Il2CppInterop-Unity6-1.0.0.zip";
 
     private readonly Label statusLabel;
@@ -177,6 +268,7 @@ public class  MainWindow : Form
 
         try
         {
+            Log(IsWine ? $"[Wine] Installing to Linux path: {GameDir}" : $"Installing to: {GameDir}");
             if (!Directory.Exists(GameDir))
             {
                 Log($"Game directory not found: {GameDir}");
@@ -253,12 +345,22 @@ public class  MainWindow : Form
                 if (name.StartsWith("PolytoriaVR.GUI", StringComparison.OrdinalIgnoreCase)) continue;
                 if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)) continue;
                 if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
-                var dest = Path.Combine(pluginsDir, Path.GetFileName(file));
-                File.Copy(file, dest, true);
-                Log($"  Copied: {Path.GetFileName(file)}");
+
+                if (name.Equals("openvr_api.dll", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("openvr_api.so", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("openvr_api.dylib", StringComparison.OrdinalIgnoreCase))
+                {
+                    var dest = Path.Combine(GameDir, name);
+                    File.Copy(file, dest, true);
+                }
+                else
+                {
+                    var dest = Path.Combine(pluginsDir, name);
+                    File.Copy(file, dest, true);
+                }
+                Log($"  Copied: {name}");
             }
             Log("Mod files installed.");
-            progressBar.Value = 85;
             progressBar.Value = 90;
 
             PatchBootConfig();

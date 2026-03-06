@@ -105,20 +105,6 @@ namespace PolytoriaVR
 
         private IEnumerator InitializeVR()
         {
-            Plugin.Log.LogInfo("[VR] Loading VR DLL..");
-            bool dllOK = false;
-            try { dllOK = OpenVR.LoadDLL(); }
-            catch (Exception e) { Plugin.Log.LogError($"[VR] LoadDLL: {e.Message}"); }
-
-            if (!dllOK)
-            {
-                Plugin.LastStatus = "Failed: openvr_api.dll not found";
-                initializing = false;
-                yield break;
-            }
-
-            yield return null;
-
             Plugin.Log.LogInfo("[VR] OpenVR initializing..");
             bool initOK = false;
             try { initOK = OpenVR.Init(); }
@@ -137,14 +123,6 @@ namespace PolytoriaVR
             SetupCamera();
 
             yield return null;
-
-            Plugin.Log.LogInfo("[VR] Testing controller tracking..");
-            if (OpenVR.GetHMDPose(out Vector3 pos, out Quaternion rot))
-            {
-            }
-            else
-            {
-            }
 
             Plugin.VRActive = true;
             Plugin.LastStatus = "Active";
@@ -473,8 +451,6 @@ namespace PolytoriaVR
                 Plugin.Log.LogWarning($"[VR] UpdateHands error: {e.Message}");
             }
         }
-
-        private int gripDebugCounter;
 
         private void UpdateGripStrength()
         {

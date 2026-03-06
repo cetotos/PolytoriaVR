@@ -17,7 +17,7 @@
   <ItemGroup>
     <Compile Include="Plugin.cs" />
     <Compile Include="OpenVR.cs" />
-    <Compile Include="OpenVRStructs.cs" />
+    <Compile Include="openvr_api.cs" />
     <Compile Include="VRManager.cs" />
     <Compile Include="NpcSafetyPatch.cs" />
   </ItemGroup>
@@ -111,6 +111,9 @@
   <PropertyGroup>
     <BuildDir>$(MSBuildProjectDirectory)\build</BuildDir>
     <PluginsDir>$(GameDir)\BepInEx\plugins</PluginsDir>
+    <OpenVRBinDir>$(MSBuildProjectDirectory)\..\PolytoriaVR\openvr\bin</OpenVRBinDir>
+    <OpenVRDllWin>$(OpenVRBinDir)\win64\openvr_api.dll</OpenVRDllWin>
+    <OpenVRSoLinux>$(OpenVRBinDir)\linux64\libopenvr_api.so</OpenVRSoLinux>
   </PropertyGroup>
 
   <Target Name="CopyToBuildAndGame" AfterTargets="Build">
@@ -119,7 +122,11 @@
       <ModOutputFiles Include="$(OutputPath)\PolytoriaVR.dll;$(OutputPath)\vr_actions.json;$(OutputPath)\bindings_*.json" />
     </ItemGroup>
     <Copy SourceFiles="@(ModOutputFiles)" DestinationFolder="$(BuildDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OpenVRDllWin)" DestinationFolder="$(BuildDir)" SkipUnchangedFiles="true" Condition="Exists('$(OpenVRDllWin)')" />
+    <Copy SourceFiles="$(OpenVRSoLinux)" DestinationFolder="$(BuildDir)" SkipUnchangedFiles="true" Condition="Exists('$(OpenVRSoLinux)')" />
     <Copy SourceFiles="@(ModOutputFiles)" DestinationFolder="$(PluginsDir)" SkipUnchangedFiles="true" Condition="Exists('$(PluginsDir)')" />
+    <Copy SourceFiles="$(OpenVRDllWin)" DestinationFolder="$(PluginsDir)" SkipUnchangedFiles="true" Condition="Exists('$(PluginsDir)') And Exists('$(OpenVRDllWin)')" />
+    <Copy SourceFiles="$(OpenVRSoLinux)" DestinationFolder="$(PluginsDir)" SkipUnchangedFiles="true" Condition="Exists('$(PluginsDir)') And Exists('$(OpenVRSoLinux)')" />
   </Target>
 
   <Target Name="ZipBuild" AfterTargets="CopyToBuildAndGame">
