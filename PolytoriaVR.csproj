@@ -7,11 +7,13 @@
     <LangVersion>latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <GameDir>$(AppData)\Polytoria\Client\1.4.155</GameDir>
-    <BepInExCoreDir>$(GameDir)\BepInEx\core</BepInExCoreDir>
-    <InteropDir>$(GameDir)\BepInEx\interop</InteropDir>
     <Nullable>disable</Nullable>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GameDir>$(AppData)\Polytoria\Client\1.4.155</GameDir>
+    <LibDir>$(MSBuildProjectDirectory)\lib</LibDir>
+    <CoreDir>$(LibDir)\core</CoreDir>
+    <InteropDir>$(LibDir)\interop</InteropDir>
+    <PluginsDir>$(GameDir)\BepInEx\plugins</PluginsDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,33 +24,36 @@
     <Compile Include="NpcSafetyPatch.cs" />
   </ItemGroup>
 
+  <!-- BepInEx core references -->
   <ItemGroup>
-    <!-- BepInEx Core -->
     <Reference Include="BepInEx.Core">
-      <HintPath>$(BepInExCoreDir)\BepInEx.Core.dll</HintPath>
+      <HintPath>$(CoreDir)\BepInEx.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="BepInEx.Unity.IL2CPP">
-      <HintPath>$(BepInExCoreDir)\BepInEx.Unity.IL2CPP.dll</HintPath>
+      <HintPath>$(CoreDir)\BepInEx.Unity.IL2CPP.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="BepInEx.Unity.Common">
-      <HintPath>$(BepInExCoreDir)\BepInEx.Unity.Common.dll</HintPath>
+      <HintPath>$(CoreDir)\BepInEx.Unity.Common.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Il2CppInterop.Runtime">
-      <HintPath>$(BepInExCoreDir)\Il2CppInterop.Runtime.dll</HintPath>
+      <HintPath>$(CoreDir)\Il2CppInterop.Runtime.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>$(BepInExCoreDir)\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>$(CoreDir)\MonoMod.RuntimeDetour.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="0Harmony">
-      <HintPath>$(BepInExCoreDir)\0Harmony.dll</HintPath>
+      <HintPath>$(CoreDir)\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <!-- Unity Core -->
+  </ItemGroup>
+
+  <!-- Game-specific interop references -->
+  <ItemGroup>
     <Reference Include="UnityEngine">
       <HintPath>$(InteropDir)\UnityEngine.dll</HintPath>
       <Private>false</Private>
@@ -61,8 +66,6 @@
       <HintPath>$(InteropDir)\Il2Cppmscorlib.dll</HintPath>
       <Private>false</Private>
     </Reference>
-
-    <!-- XR / VR Modules -->
     <Reference Include="UnityEngine.XRModule">
       <HintPath>$(InteropDir)\UnityEngine.XRModule.dll</HintPath>
       <Private>false</Private>
@@ -75,20 +78,14 @@
       <HintPath>$(InteropDir)\UnityEngine.SubsystemsModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
-
-    <!-- Physics (for Collider on hand cubes) -->
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>$(InteropDir)\UnityEngine.PhysicsModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
-
-    <!-- Input -->
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>$(InteropDir)\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
-
-    <!-- Game Assembly (for Polytoria types) -->
     <Reference Include="Assembly-CSharp">
       <HintPath>$(InteropDir)\Assembly-CSharp.dll</HintPath>
       <Private>false</Private>
@@ -110,7 +107,6 @@
 
   <PropertyGroup>
     <BuildDir>$(MSBuildProjectDirectory)\build</BuildDir>
-    <PluginsDir>$(GameDir)\BepInEx\plugins</PluginsDir>
     <OpenVRBinDir>$(MSBuildProjectDirectory)\..\PolytoriaVR\openvr\bin</OpenVRBinDir>
     <OpenVRDllWin>$(OpenVRBinDir)\win64\openvr_api.dll</OpenVRDllWin>
     <OpenVRSoLinux>$(OpenVRBinDir)\linux64\libopenvr_api.so</OpenVRSoLinux>

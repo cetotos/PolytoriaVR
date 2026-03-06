@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Mod
+        run: dotnet build PolytoriaVR.csproj -c Release
+
+      - name: Build GUI
+        run: dotnet build PolytoriaVR.GUI/PolytoriaVR.GUI.csproj -c Release
+
+      - name: Upload Mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: PolytoriaVR-Mod
+          path: build/
+
+      - name: Upload GUI
+        uses: actions/upload-artifact@v4
+        with:
+          name: PolytoriaVR-GUI
+          path: |
+            build/PolytoriaVR.GUI.exe
+            build/PolytoriaVR.GUI.dll
+            build/PolytoriaVR.GUI.runtimeconfig.json
