@@ -2,6 +2,11 @@ using System;
 using System.Reflection;
 using HarmonyLib;
 
+/* Currently, the server will still crash, but this patch protects anyone with the mod from crashing. 
+ * The crash is an issue in the Client, so Polytoria needs to fix the client themselves. */
+
+// it might be fixed in 1.5.2, i didn't check
+
 namespace PolytoriaVR
 {
 

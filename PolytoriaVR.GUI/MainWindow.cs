@@ -10,7 +10,7 @@ namespace PolytoriaVR.GUI;
 public class MainWindow : Form
 {
     private const int Port = 9999;
-    private static readonly bool IsWine = DetectWine();
+    private static readonly bool IsWine = DetectWine(); // the mod won't run on Linux, however installer will still work if under wine
     private static readonly string GameDir = ResolveGameDir();
     private static readonly string BootConfig = Path.Combine(GameDir, "Polytoria Client_Data", "boot.config");
     private static readonly string BootBackup = BootConfig + ".bak";
@@ -19,12 +19,11 @@ public class MainWindow : Form
 
     private static bool DetectWine()
     {
-        // Check common Wine environment variables
+
         string[] wineVars = { "WINEPREFIX", "WINELOADERNOEXEC", "WINELOADER", "WINEDEBUG", "WINE_LARGE_ADDRESS_AWARE" };
         foreach (var v in wineVars)
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(v))) return true;
 
-        // Check Wine registry key
         try
         {
             using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Wine");
@@ -32,7 +31,6 @@ public class MainWindow : Form
         }
         catch { }
 
-        // Check ntdll for wine_get_version export
         try
         {
             var ntdll = GetModuleHandle("ntdll.dll");
@@ -63,26 +61,22 @@ public class MainWindow : Form
     {
         if (IsWine)
         {
-            // Try multiple ways to find the Linux home directory
+
             var homes = new System.Collections.Generic.List<string>();
 
-            // 1. HOME env var (Unix path like /home/cetotos)
             var home = Environment.GetEnvironmentVariable("HOME");
             if (!string.IsNullOrEmpty(home))
                 homes.Add("Z:" + home.Replace('/', '\\'));
 
-            // 2. Derive from Wine's user profile path (C:\users\X -> Z:\home\X)
             var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var userName = Path.GetFileName(userProfile.TrimEnd('\\', '/'));
             if (!string.IsNullOrEmpty(userName))
                 homes.Add(@"Z:\home\" + userName);
 
-            // 3. USER env var
             var user = Environment.GetEnvironmentVariable("USER");
             if (!string.IsNullOrEmpty(user))
                 homes.Add(@"Z:\home\" + user);
 
-            // Search known Polytoria config locations under each home
             string[] configPaths = {
                 Path.Combine(".var", "app", "com.polytoria.launcher", "config", "Polytoria", "Client"),
                 Path.Combine(".config", "Polytoria", "Client"),
@@ -100,17 +94,15 @@ public class MainWindow : Form
             }
         }
 
-        // Windows (or Wine fallback): use AppData
         var winBase = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Polytoria", "Client");
         return FindClientDir(winBase) ?? winBase;
     }
 
-    private const string BepInExUrlWin = "https://builds.bepinex.dev/projects/bepinex_be/754/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.754%2Bc038613.zip";
-    private const string BepInExUrlLinux = "https://builds.bepinex.dev/projects/bepinex_be/754/BepInEx-Unity.IL2CPP-linux-x64-6.0.0-be.754%2Bc038613.zip";
+    private const string BepInExUrlWin = "https://builds.bepinex.dev/projects/bepinex_be/755/BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.755%2B3fab71a.zip";
+    private const string BepInExUrlLinux = "https://builds.bepinex.dev/projects/bepinex_be/755/BepInEx-Unity.IL2CPP-linux-x64-6.0.0-be.755%2B3fab71a.zip";
     private static readonly string BepInExUrl = IsWine ? BepInExUrlLinux : BepInExUrlWin;
-    private const string Unity6PatchUrl = "https://github.com/cetotos/Il2CppInterop-Unity6/releases/download/v1.0.0/Il2CppInterop-Unity6-1.0.0.zip";
 
     private readonly Label statusLabel;
     private readonly NumericUpDown turnSpeedInput;
@@ -268,7 +260,7 @@ public class MainWindow : Form
 
         try
         {
-            Log(IsWine ? $"[Wine] Installing to Linux path: {GameDir}" : $"Installing to: {GameDir}");
+            Log(IsWine ? $"Installing to Linux path: {GameDir}" : $"Installing to: {GameDir}");
             if (!Directory.Exists(GameDir))
             {
                 Log($"Game directory not found: {GameDir}");
@@ -290,31 +282,7 @@ public class MainWindow : Form
             Log("BepInEx installed.");
             progressBar.Value = 40;
 
-            Log("Downloading Unity6 patches...");
-            var patchZip = Path.Combine(tempDir, "patches.zip");
-            await DownloadFileAsync(Unity6PatchUrl, patchZip);
-            progressBar.Value = 60;
-
-            Log("Extracting patches...");
-            var patchExtract = Path.Combine(tempDir, "patches");
-            ZipFile.ExtractToDirectory(patchZip, patchExtract, true);
-
-            var coreDir = Path.Combine(GameDir, "BepInEx", "core");
-            var releaseDir = FindFolder(patchExtract, "release");
-            if (releaseDir != null)
-            {
-                foreach (var dll in Directory.GetFiles(releaseDir, "*.dll"))
-                {
-                    File.Copy(dll, Path.Combine(coreDir, Path.GetFileName(dll)), true);
-                    Log($"  Patched: {Path.GetFileName(dll)}");
-                }
-                Log("Unity6 patches applied.");
-            }
-            else
-            {
-                Log("WARNING: 'release' folder not found in patches zip.");
-            }
-            progressBar.Value = 75;
+            // we don't need patches since fixes were merged
 
             var pluginsDir = Path.Combine(GameDir, "BepInEx", "plugins");
             Directory.CreateDirectory(pluginsDir);

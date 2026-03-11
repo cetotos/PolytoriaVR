@@ -26,8 +26,6 @@ namespace PolytoriaVR
 
         private PolytoriaCamera polytoriaCamera;
         private PolytoriaPlayer localPlayer;
-        private float bodyYaw;
-        private bool bodyYawInitialized;
         private float smoothTurnYaw;
         private const float BodyTurnThreshold = 45f;
         private const float BodyTurnSpeed = 6f;
@@ -206,7 +204,7 @@ namespace PolytoriaVR
                 rightHand.GetComponent<Collider>().enabled = false;
                 rightHand.SetActive(false);
 
-                Plugin.Log.LogInfo("[VR] Hand cubes created");
+                Plugin.Log.LogInfo("[VR] Local hands created");
             }
             catch (Exception e)
             {
@@ -750,7 +748,6 @@ namespace PolytoriaVR
             Plugin.Log.LogInfo("[VR] Disabling VR...");
             renderLoopRunning = false;
             localPlayer = null;
-            bodyYawInitialized = false;
             smoothTurnYaw = 0f;
 
             Cursor.lockState = CursorLockMode.None;

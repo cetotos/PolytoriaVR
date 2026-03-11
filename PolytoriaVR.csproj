@@ -8,8 +8,9 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>disable</Nullable>
+    <NoWarn>MSB3277</NoWarn>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <GameDir>$(AppData)\Polytoria\Client\1.4.155</GameDir>
+    <GameDir>$(AppData)\Polytoria\Client\1.5.2</GameDir>
     <LibDir>$(MSBuildProjectDirectory)\lib</LibDir>
     <CoreDir>$(LibDir)\core</CoreDir>
     <InteropDir>$(LibDir)\interop</InteropDir>

@@ -129,6 +129,8 @@ namespace PolytoriaVR
                 if (error != EVRInitError.None)
                 {
                     Plugin.Log.LogError($"[OpenVR] VR_Init failed: {error}");
+
+                    // don't really need this, but it can stay
                     Plugin.Log.LogInfo("[OpenVR] Retrying as Background application...");
                     error = EVRInitError.None;
                     OpenVRInterop.InitInternal(ref error, EVRApplicationType.VRApplication_Background);
@@ -159,7 +161,7 @@ namespace PolytoriaVR
                     system.GetRecommendedRenderTargetSize(ref w, ref h);
                     RenderWidth = w;
                     RenderHeight = h;
-                    Plugin.Log.LogInfo($"[OpenVR] Recommended render size: {w}x{h}");
+                    Plugin.Log.LogInfo($"[OpenVR] Got recommended resolution: {w}x{h}");
                 }
             }
             catch (Exception e)
@@ -506,6 +508,9 @@ namespace PolytoriaVR
         private static bool skeletalDisabled;
         private static float[] _cachedLeftCurls = new float[5];
         private static float[] _cachedRightCurls = new float[5];
+
+        // we use skeletal when we don't really need to since this has a natural "curve" to the fingers
+        // also the private version needs it for hand tracking
 
         public static unsafe bool GetFingerCurls(bool leftHand, out float[] curls)
         {

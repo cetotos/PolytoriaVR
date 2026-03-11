@@ -15,7 +15,7 @@ namespace PolytoriaVR
     [BepInPlugin("com.cetotos.polytoriavr", "PolytoriaVR", "0.1.0")]
     public class Plugin : BasePlugin
     {
-        internal static ManualLogSource Log;
+        internal new static ManualLogSource Log;
         internal static volatile bool VRActivationRequested;
         internal static volatile bool VRDeactivationRequested;
         internal static volatile bool VRActive;
