@@ -1,12 +1,12 @@
 # UPDATE
-I got banned for a month for using the mod so I won't be able to update the game... This is a reminder to use this ON AN ALT. You WILL get banned.
+I got banned for a month on my main account (13a) for using mods, meaning I cannot update the game!
 
 # Polytoria VR
 Polytoria BepInEx mod that lets you play the game in full VR.
 Mainly for use with [my custom game made for this mod](https://polytoria.com/places/98836),
 however it can be used in any game, just without the hands.
 
-### WARNING: Modding Polytoria is against the rules. *You WILL get banned from using this mod*. USE AN ALT when the mod is active.
+### WARNING: Modding Polytoria is against the rules. *You MIGHT get banned from using this mod*. USE AN ALT when the mod is active.
 
 ## Installation
 
