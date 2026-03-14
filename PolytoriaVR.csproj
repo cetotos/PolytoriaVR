@@ -10,7 +10,8 @@
     <Nullable>disable</Nullable>
     <NoWarn>MSB3277</NoWarn>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <GameDir>$(AppData)\Polytoria\Client\1.5.2</GameDir>
+    <ClientBase>$(AppData)\Polytoria\Client</ClientBase>
+    <GameDir>$([System.IO.Directory]::GetDirectories('$(ClientBase)')[0])</GameDir>
     <LibDir>$(MSBuildProjectDirectory)\lib</LibDir>
     <CoreDir>$(LibDir)\core</CoreDir>
     <InteropDir>$(LibDir)\interop</InteropDir>

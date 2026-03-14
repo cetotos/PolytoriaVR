@@ -27,4 +27,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PolytoriaVR-Mod
-          path: build/
+          path: |
+            build/
+            !build/*.zip
