@@ -128,10 +128,8 @@
   </Target>
 
   <Target Name="ZipBuild" AfterTargets="CopyToBuildAndGame">
-    <Delete Files="$(BuildDir)\PolytoriaVR-mod.zip" Condition="Exists('$(BuildDir)\PolytoriaVR-mod.zip')" />
-    <Delete Files="$(MSBuildProjectDirectory)\PolytoriaVR-mod.zip" Condition="Exists('$(MSBuildProjectDirectory)\PolytoriaVR-mod.zip')" />
-    <ZipDirectory SourceDirectory="$(BuildDir)" DestinationFile="$(MSBuildProjectDirectory)\PolytoriaVR-mod.zip" Overwrite="true" />
-    <Move SourceFiles="$(MSBuildProjectDirectory)\PolytoriaVR-mod.zip" DestinationFolder="$(BuildDir)" />
+    <Delete Files="$(MSBuildProjectDirectory)\PolytoriaVR.zip" Condition="Exists('$(MSBuildProjectDirectory)\PolytoriaVR.zip')" />
+    <ZipDirectory SourceDirectory="$(BuildDir)" DestinationFile="$(MSBuildProjectDirectory)\PolytoriaVR.zip" Overwrite="true" />
   </Target>
 
 </Project>
