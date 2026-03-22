@@ -6,7 +6,7 @@ Polytoria BepInEx mod that lets you play the game in full VR.
 Mainly for use with [my custom game made for this mod](https://polytoria.com/places/98836),
 however it can be used in any game, just without the hands.
 
-### WARNING: Modding Polytoria is against the rules. *You MIGHT get banned from using this mod*. USE AN ALT when the mod is active.
+### Moderation concerns: Mod was confirmed to be not bannable :) thanks Emir. You should be safe using it
 
 ## Installation
 
